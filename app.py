@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="NPF AI Intelligence System", page_icon="👮‍♂️", layout="wide")
@@ -15,13 +15,13 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- AI CONNECTION (Google Gemini) ---
+# --- AI CONNECTION (Hard-Coded for Prototype Speed) ---
+# We are bypassing secrets for now to ensure the prototype works immediately
 try:
-    # This looks for the key in Streamlit Secrets
-    genai.configure(api_key=st.secrets[AQ.Ab8RN6KrEpp1EaPKA4FYqKe3v0YxP5yJphLAM9ZsQER-ZBJRuA])
-    model = genai.GenerativeModel('gemini-1.5-flash')
-except:
-    st.error("⚠️ Gemini API Key not found! Please add GEMINI_API_KEY to Streamlit Secrets.")
+    client = genai.Client(api_key="AQ.Ab8RN6KrEpp1EaPKA4FYqKe3v0YxP5yJphLAM9ZsQER-ZBJRuA")
+    MODEL_ID = "gemini-1.5-flash"
+except Exception as e:
+    st.error(f"Connection Error: {e}")
     st.stop()
 
 # --- PERSONAS ---
@@ -38,8 +38,8 @@ with st.sidebar:
     st.markdown("---")
     mode = st.selectbox("🎯 Operation Mode", list(PROMPTS.keys()))
     st.markdown("---")
-    st.markdown("🛡️ **Status:** Google Cloud Active")
-    st.markdown("🌐 **Network:** Secure API Link")
+    st.markdown("🛡️ **Status:** Gemini 2.0 Cloud Active")
+    st.markdown("🌐 **Network:** Hard-Coded Secure Link")
 
 # --- MAIN UI ---
 st.markdown("<h1 style='text-align: center;'>👮‍♂️ NPF Intelligence & Assistance System</h1>", unsafe_allow_html=True)
@@ -60,12 +60,17 @@ if prompt := st.chat_input("Enter police command, report, or query..."):
     with st.chat_message("assistant"):
         with st.spinner("🔍 Analyzing Intelligence..."):
             try:
-                full_query = f"{PROMPTS[mode]}\n\nUser Request: {prompt}"
-                response = model.generate_content(full_query)
+                # Combine persona with user input
+                full_prompt = f"{PROMPTS[mode]}\n\nUser Request: {prompt}"
+                response = client.models.generate_content(
+                    model=MODEL_ID, 
+                    contents=full_prompt
+                )
+                
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"AI Error: {e}")
 
 st.markdown("---")
 st.markdown("<p style='text-align: center; font-size: 12px;'>Official NPF Digital Transformation Initiative | Confidential & Restricted</p>", unsafe_allow_html=True)
