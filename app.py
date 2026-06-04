@@ -18,7 +18,7 @@ st.markdown(f"""
 # --- AI CONNECTION (STABLE VERSION) ---
 try:
     # Using the stable generativeai library with your key
-    genai.configure(api_key="AQ.Ab8RN6KrEpp1EaPKA4FYqKe3v0YxP5yJphLAM9ZsQER-ZBJRuA")
+    genai.configure(api_key="AQ.Ab8RN6LkjbQZp32SatP9YHe5zFR85CoP39vqWSiCIwlzylf1BQ")
     model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception as e:
     st.error(f"Connection Error: {e}")
