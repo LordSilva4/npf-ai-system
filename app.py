@@ -15,11 +15,12 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- AI CONNECTION (STABLE VERSION) ---
+# --- AI CONNECTION ---
 try:
-    # Using the stable generativeai library with your key
-    genai.configure(api_key="AQ.Ab8RN6LkjbQZp32SatP9YHe5zFR85CoP39vqWSiCIwlzylf1BQ")
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # Using your valid AIza key
+    genai.configure(api_key="AQ.Ab8RN6LkjbQZp32SatP9YHe5zFR85CoP39vqWSiCIwlzylf1BQ") 
+    # We use 'gemini-pro' as it is the most stable and universal model
+    model = genai.GenerativeModel('gemini-pro')
 except Exception as e:
     st.error(f"Connection Error: {e}")
     st.stop()
@@ -38,7 +39,7 @@ with st.sidebar:
     st.markdown("---")
     mode = st.selectbox("🎯 Operation Mode", list(PROMPTS.keys()))
     st.markdown("---")
-    st.markdown("🛡️ **Status:** Stable Cloud Active")
+    st.markdown("🛡️ **Status:** Universal Cloud Active")
     st.markdown("🌐 **Network:** Hard-Coded Secure Link")
 
 # --- MAIN UI ---
@@ -60,7 +61,6 @@ if prompt := st.chat_input("Enter police command, report, or query..."):
     with st.chat_message("assistant"):
         with st.spinner("🔍 Analyzing Intelligence..."):
             try:
-                # Simple logic:Persona + User Input
                 full_query = f"{PROMPTS[mode]}\n\nUser Request: {prompt}"
                 response = model.generate_content(full_query)
                 
