@@ -1,5 +1,5 @@
 import streamlit as st
-from google import genai
+import google.generativeai as genai
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="NPF AI Intelligence System", page_icon="👮‍♂️", layout="wide")
@@ -15,11 +15,11 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- AI CONNECTION (Hard-Coded for Prototype Speed) ---
-# We are bypassing secrets for now to ensure the prototype works immediately
+# --- AI CONNECTION (STABLE VERSION) ---
 try:
-    client = genai.Client(api_key="AQ.Ab8RN6KrEpp1EaPKA4FYqKe3v0YxP5yJphLAM9ZsQER-ZBJRuA")
-    MODEL_ID = "gemini-1.5-flash"
+    # Using the stable generativeai library with your key
+    genai.configure(api_key="AQ.Ab8RN6KrEpp1EaPKA4FYqKe3v0YxP5yJphLAM9ZsQER-ZBJRuA")
+    model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception as e:
     st.error(f"Connection Error: {e}")
     st.stop()
@@ -38,7 +38,7 @@ with st.sidebar:
     st.markdown("---")
     mode = st.selectbox("🎯 Operation Mode", list(PROMPTS.keys()))
     st.markdown("---")
-    st.markdown("🛡️ **Status:** Gemini 2.0 Cloud Active")
+    st.markdown("🛡️ **Status:** Stable Cloud Active")
     st.markdown("🌐 **Network:** Hard-Coded Secure Link")
 
 # --- MAIN UI ---
@@ -60,12 +60,9 @@ if prompt := st.chat_input("Enter police command, report, or query..."):
     with st.chat_message("assistant"):
         with st.spinner("🔍 Analyzing Intelligence..."):
             try:
-                # Combine persona with user input
-                full_prompt = f"{PROMPTS[mode]}\n\nUser Request: {prompt}"
-                response = client.models.generate_content(
-                    model=MODEL_ID, 
-                    contents=full_prompt
-                )
+                # Simple logic:Persona + User Input
+                full_query = f"{PROMPTS[mode]}\n\nUser Request: {prompt}"
+                response = model.generate_content(full_query)
                 
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
