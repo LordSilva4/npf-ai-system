@@ -17,7 +17,7 @@ st.markdown(f"""
 
 # --- AI CONNECTION ---
 try:
-    genai.configure(api_key="AQ.Ab8RN6LyxhdknQ5sf6V7VCG_ufqkYkDa7WKZiXRjW62HiJts1g")
+    genai.configure(api_key="AQ.Ab8RN6LkjbQZp32SatP9YHe5zFR85CoP39vqWSiCIwlzylf1BQ")
 except Exception as e:
     st.error(f"Connection Error: {e}")
     st.stop()
