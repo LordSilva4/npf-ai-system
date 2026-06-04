@@ -17,13 +17,19 @@ st.markdown(f"""
 
 # --- AI CONNECTION ---
 try:
-    # Using your valid AIza key
-    genai.configure(api_key="AQ.Ab8RN6LkjbQZp32SatP9YHe5zFR85CoP39vqWSiCIwlzylf1BQ") 
-    # We use 'gemini-pro' as it is the most stable and universal model
-    model = genai.GenerativeModel('gemini-pro')
+    genai.configure(api_key="AQ.Ab8RN6LyxhdknQ5sf6V7VCG_ufqkYkDa7WKZiXRjW62HiJts1g")
 except Exception as e:
     st.error(f"Connection Error: {e}")
     st.stop()
+
+# --- MODEL MATRIX (Mapping your vision to actual API names) ---
+MODEL_MAP = {
+    "Complex Research (Pro)": "gemini-1.5-pro",
+    "Deep Logic (Think)": "gemini-1.5-pro",
+    "Real-time Assistant (Flash)": "gemini-1.5-flash",
+    "Massive Data (Flash-Lite)": "gemini-1.5-flash",
+    "Mobile/Privacy (Nano)": "gemini-1.5-flash"
+}
 
 # --- PERSONAS ---
 PROMPTS = {
@@ -37,14 +43,25 @@ with st.sidebar:
     st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Nigeria_Police_Force_Logo.png/640px-Nigeria_Police_Force_Logo.png", width=120)
     st.markdown("<h2 style='color:white; text-align:center;'>NPF COMMAND</h2>", unsafe_allow_html=True)
     st.markdown("---")
-    mode = st.selectbox("🎯 Operation Mode", list(PROMPTS.keys()))
+    
+    # 1. Select the Intelligence Level (Your Use Case Table)
+    st.markdown("### 🧠 Intelligence Level")
+    model_choice = st.selectbox("Select Use Case", list(MODEL_MAP.keys()))
+    selected_model_name = MODEL_MAP[model_choice]
+    
     st.markdown("---")
-    st.markdown("🛡️ **Status:** Universal Cloud Active")
+    
+    # 2. Select the Persona
+    st.markdown("### 🎯 Operation Mode")
+    mode = st.selectbox("Select Mode", list(PROMPTS.keys()))
+    
+    st.markdown("---")
+    st.markdown(f"🛡️ **Active Model:** {selected_model_name}")
     st.markdown("🌐 **Network:** Hard-Coded Secure Link")
 
 # --- MAIN UI ---
 st.markdown("<h1 style='text-align: center;'>👮‍♂️ NPF Intelligence & Assistance System</h1>", unsafe_allow_html=True)
-st.markdown(f"<h3 style='text-align: center; color: #006400;'>Active Module: {mode}</h3>", unsafe_allow_html=True)
+st.markdown(f"<h3 style='text-align: center; color: #006400;'>Active Module: {mode} | Engine: {model_choice}</h3>", unsafe_allow_html=True)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -61,6 +78,8 @@ if prompt := st.chat_input("Enter police command, report, or query..."):
     with st.chat_message("assistant"):
         with st.spinner("🔍 Analyzing Intelligence..."):
             try:
+                # Dynamic model selection based on your table
+                model = genai.GenerativeModel(selected_model_name)
                 full_query = f"{PROMPTS[mode]}\n\nUser Request: {prompt}"
                 response = model.generate_content(full_query)
                 
