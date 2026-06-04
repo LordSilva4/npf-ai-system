@@ -15,21 +15,41 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- AI CONNECTION ---
+# --- SECURE AI CONNECTION ---
 try:
-    genai.configure(api_key="AQ.Ab8RN6LkjbQZp32SatP9YHe5zFR85CoP39vqWSiCIwlzylf1BQ")
+    # This pulls the key safely from the Streamlit Secrets tab
+    # NEVER put the key directly in this code
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    
+    # AUTO-DISCOVERY: Find which models this specific key actually supports
+    available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_methods]
+    
+    # Determine a safe default model to avoid 404 errors
+    if 'models/gemini-1.5-flash' in available_models:
+        DEFAULT_MODEL = 'gemini-1.5-flash'
+    elif 'models/gemini-1.5-pro' in available_models:
+        DEFAULT_MODEL = 'gemini-1.5-pro'
+    elif 'models/gemini-pro' in available_models:
+        DEFAULT_MODEL = 'gemini-pro'
+    else:
+        DEFAULT_MODEL = available_models[0] if available_models else None
+
 except Exception as e:
-    st.error(f"Connection Error: {e}")
+    st.error("🚨 SECURITY ALERT: API Key not found in Secrets tab.")
+    st.info("Please go to Settings -> Secrets and add: GEMINI_API_KEY = 'your_key_here'")
     st.stop()
 
-# --- MODEL MATRIX (Mapping your vision to actual API names) ---
-MODEL_MAP = {
-    "Complex Research (Pro)": "gemini-1.5-pro",
-    "Deep Logic (Think)": "gemini-1.5-pro",
-    "Real-time Assistant (Flash)": "gemini-1.5-flash",
-    "Massive Data (Flash-Lite)": "gemini-1.5-flash",
-    "Mobile/Privacy (Nano)": "gemini-1.5-flash"
-}
+# --- MODEL MATRIX (Mapping your vision to available models) ---
+def get_model_for_usecase(usecase):
+    if not DEFAULT_MODEL:
+        return None
+    
+    # If user wants "Pro" or "Think", try to give them Pro, otherwise fallback to default
+    if "Pro" in usecase or "Think" in usecase:
+        return 'gemini-1.5-pro' if 'models/gemini-1.5-pro' in available_models else DEFAULT_MODEL
+    
+    # For everything else, try to give them Flash (Fast), otherwise fallback to default
+    return 'gemini-1.5-flash' if 'models/gemini-1.5-flash' in available_models else DEFAULT_MODEL
 
 # --- PERSONAS ---
 PROMPTS = {
@@ -44,20 +64,26 @@ with st.sidebar:
     st.markdown("<h2 style='color:white; text-align:center;'>NPF COMMAND</h2>", unsafe_allow_html=True)
     st.markdown("---")
     
-    # 1. Select the Intelligence Level (Your Use Case Table)
     st.markdown("### 🧠 Intelligence Level")
-    model_choice = st.selectbox("Select Use Case", list(MODEL_MAP.keys()))
-    selected_model_name = MODEL_MAP[model_choice]
+    use_case_options = [
+        "Complex Research (Pro)", 
+        "Deep Logic (Think)", 
+        "Real-time Assistant (Flash)", 
+        "Massive Data (Flash-Lite)", 
+        "Mobile/Privacy (Nano)"
+    ]
+    model_choice = st.selectbox("Select Use Case", use_case_options)
+    
+    # Determine the actual model to use based on the Use Case
+    selected_model_name = get_model_for_usecase(model_choice)
     
     st.markdown("---")
-    
-    # 2. Select the Persona
     st.markdown("### 🎯 Operation Mode")
     mode = st.selectbox("Select Mode", list(PROMPTS.keys()))
     
     st.markdown("---")
-    st.markdown(f"🛡️ **Active Model:** {selected_model_name}")
-    st.markdown("🌐 **Network:** Hard-Coded Secure Link")
+    st.markdown(f"🛡️ **Verified Model:** {selected_model_name}")
+    st.markdown("🌐 **Network:** Secure Secrets Tunnel")
 
 # --- MAIN UI ---
 st.markdown("<h1 style='text-align: center;'>👮‍♂️ NPF Intelligence & Assistance System</h1>", unsafe_allow_html=True)
@@ -66,10 +92,12 @@ st.markdown(f"<h3 style='text-align: center; color: #006400;'>Active Module: {mo
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+# User Input
 if prompt := st.chat_input("Enter police command, report, or query..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -78,7 +106,7 @@ if prompt := st.chat_input("Enter police command, report, or query..."):
     with st.chat_message("assistant"):
         with st.spinner("🔍 Analyzing Intelligence..."):
             try:
-                # Dynamic model selection based on your table
+                # Create model instance based on the discovery logic
                 model = genai.GenerativeModel(selected_model_name)
                 full_query = f"{PROMPTS[mode]}\n\nUser Request: {prompt}"
                 response = model.generate_content(full_query)
